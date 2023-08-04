@@ -1,0 +1,17 @@
+name: MinecraftManhunt
+main: net.trollyloki.manhunt.ManhuntPlugin
+version: ${project.version}
+api-version: 1.18
+
+author: TrollyLoki
+
+commands:
+  manhunt:
+    description: Main manhunt command
+    aliases: [mh]
+
+permissions:
+  manhunt.reload:
+    description: Allows the player to reload the config
+  manhunt.admin:
+    description: Allows the player to administrate manhunts

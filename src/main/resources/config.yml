@@ -1,0 +1,56 @@
+tracking-compass:
+  name: '&bTracking %s'
+  lore: '&7Right click to update'
+  update: 'Target location updated'
+
+scoreboard:
+  runner-color: BLUE
+  hunter-color: RED
+
+game:
+  max-distance: 1000
+  worldborder-radius: 5000
+  combat-grace: 600
+  nether-grace: 300
+  combat-grace-warning: '&6Combat grace period '
+  nether-grace-warning: '&4Nether grace period '
+  grace-warnings:
+    600: 'ends in 10 minutes'
+    300: 'ends in 5 minutes'
+    60: 'ends in 1 minute'
+    30: 'ends in 30 seconds'
+    10: 'ends in 10 seconds'
+    5: 'ends in 5 seconds'
+    0: 'has ended'
+  nether-entry-deny: '&4Hunters can not enter the nether yet!'
+  actionbar: '&a%s&r - &6%s&r - &4%s&r'
+  pause-title: 'PAUSED'
+  pearls: 7
+  combat-time: 15
+  revives: 2
+  runner-killed: '&3%s has been eliminated!'
+  hunters-win: '&3Hunters win!'
+  runners-win: '&3Runners win!'
+  advancement-goal: '&3GOAL: Obtain the advancement: '
+  invincibility: 30
+  invincibility-warning: '&aYour invincibility '
+  invincibility-warnings:
+    30: 'expires in 30 seconds'
+    20: 'expires in 20 seconds'
+    10: 'expires in 10 seconds'
+    5: 'expires in 5 seconds'
+    4: 'expires in 4 seconds'
+    3: 'expires in 3 seconds'
+    2: 'expires in 2 seconds'
+    1: 'expires in 1 seconds'
+    0: 'has expired'
+
+revive-gui:
+  title: 'Revive?'
+  remaining: '&3%d revives remaining'
+  yes-item:
+    material: LIME_CONCRETE
+    name: '&a&lYES'
+  no-item:
+    material: RED_CONCRETE
+    name: '&c&lNO'
