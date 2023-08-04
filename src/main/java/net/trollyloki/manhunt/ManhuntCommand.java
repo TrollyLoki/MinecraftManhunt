@@ -32,13 +32,20 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
         AbstractManhunt manhunt = null;
         if (sender instanceof Player)
             manhunt = manhunts.get(((Player) sender).getUniqueId());
-        if (manhunt == null)
-            sender.sendMessage(ChatColor.RED + "You do not own a manhunt");
+        if (manhunt == null) {
+            // Check if user is a participant in a manhunt
+            if (getManhunt(sender) != null)
+                sender.sendMessage(ChatColor.RED + "You are not the owner of this manhunt");
+            else
+                sender.sendMessage(ChatColor.RED + "You do not own a manhunt");
+        }
         return manhunt;
     }
 
     public AbstractManhunt getManhunt(CommandSender sender) {
         AbstractManhunt manhunt = null;
+        // Check if player is a participant in a manhunt
+        // Owning a manhunt does not mean you are participating in the manhunt (yet)
         if (sender instanceof Player player) {
             for (AbstractManhunt tempHunt : manhunts.values()) {
                 if (tempHunt.getPlayers().contains(player)) {
@@ -46,7 +53,11 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     break;
                 }
             }
+            // If they were not found, maybe they own a manhunt but just haven't added themselves yet
+            if (manhunt == null)
+                manhunt = manhunts.get(player.getUniqueId());
         }
+
         if (manhunt == null)
             sender.sendMessage(ChatColor.RED + "You are not in a manhunt");
         return manhunt;
