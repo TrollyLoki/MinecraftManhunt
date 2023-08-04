@@ -575,8 +575,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
             }
 
             else if (args[0].equalsIgnoreCase("remove")
-                    || args[0].equalsIgnoreCase("revive")
-                    || args[0].equalsIgnoreCase("compass")) {
+                    || args[0].equalsIgnoreCase("revive")) {
 
                 if (sender.hasPermission(ADMIN_PERM) && sender instanceof Player
                         && (manhunt = manhunts.get(((Player) sender).getUniqueId())) != null) {
