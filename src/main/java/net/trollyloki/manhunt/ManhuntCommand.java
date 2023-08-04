@@ -63,11 +63,10 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
             // Only hunters and players with admin perms may obtain compasses
             if (args[0].equalsIgnoreCase("compass")) {
 
-                if (!(sender instanceof Player)) {
+                if (!(sender instanceof Player player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can get tracking compasses");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -123,11 +122,10 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
             // Create command - usable by anyone with admin perms
             else if (args[0].equalsIgnoreCase("create")) {
 
-                if (!(sender instanceof Player)) {
+                if (!(sender instanceof Player player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can create manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 if (!sender.hasPermission(ADMIN_PERM)) {
                     sender.sendMessage(ChatColor.RED + "You do not have permission to create a manhunt");
@@ -184,7 +182,6 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Only players can add players");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -239,7 +236,6 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Only players can remove players");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -280,7 +276,6 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Only players can start manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhuntAsOwner(sender);
                 if (manhunt != null) {
@@ -319,7 +314,6 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Only players can revive players");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -361,7 +355,6 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Only players can pause manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -391,7 +384,6 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Only players can stop manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhuntAsOwner(sender);
                 if (manhunt != null) {
