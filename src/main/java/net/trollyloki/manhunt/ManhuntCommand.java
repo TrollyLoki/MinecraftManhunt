@@ -28,13 +28,18 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
         this.plugin = plugin;
     }
 
+    /**
+     * This method takes a player and returns the manhunt they are currently owner of.
+     * @param sender Sender of command
+     * @return Manhunt that they own, null if none
+     */
     public AbstractManhunt getManhuntAsOwner(CommandSender sender) {
         AbstractManhunt manhunt = null;
         if (sender instanceof Player)
             manhunt = manhunts.get(((Player) sender).getUniqueId());
         if (manhunt == null) {
             // Check if user is a participant in a manhunt
-            if (getManhunt(sender) != null)
+            if (getManhuntAsMember(sender) != null)
                 sender.sendMessage(ChatColor.RED + "You are not the owner of this manhunt");
             else
                 sender.sendMessage(ChatColor.RED + "You do not own a manhunt");
@@ -42,6 +47,13 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
         return manhunt;
     }
 
+    /**
+     * This method takes a player and returns any manhunt they are participating in OR owner of.
+     * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
+     * However, that should not matter with this method.
+     * @param sender Sender of command
+     * @return Manhunt that they are participating in OR owner of, null if none
+     */
     public AbstractManhunt getManhunt(CommandSender sender) {
         AbstractManhunt manhunt = null;
         // Check if player is a participant in a manhunt
@@ -60,6 +72,28 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
         if (manhunt == null)
             sender.sendMessage(ChatColor.RED + "You are not in a manhunt");
+        return manhunt;
+    }
+
+    /**
+     * This method takes a player and returns any manhunt they are participating in.
+     * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
+     * @param sender Sender of command
+     * @return Manhunt associated with the sender, null if none
+     */
+    public AbstractManhunt getManhuntAsMember(CommandSender sender) {
+        AbstractManhunt manhunt = null;
+        // Check if player is a participant in a manhunt
+        // Owning a manhunt does not mean you are participating in the manhunt (yet)
+        if (sender instanceof Player player) {
+            for (AbstractManhunt tempHunt : manhunts.values()) {
+                if (tempHunt.getPlayers().contains(player)) {
+                    manhunt = tempHunt;
+                    break;
+                }
+            }
+        }
+
         return manhunt;
     }
 
