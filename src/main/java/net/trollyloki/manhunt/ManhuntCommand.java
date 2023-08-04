@@ -27,20 +27,39 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
         this.plugin = plugin;
     }
 
-    public AbstractManhunt getManhunt(CommandSender sender) {
+    public AbstractManhunt getManhuntAsOwner(CommandSender sender) {
         AbstractManhunt manhunt = null;
         if (sender instanceof Player)
             manhunt = manhunts.get(((Player) sender).getUniqueId());
         if (manhunt == null)
+            sender.sendMessage(ChatColor.RED + "You do not own a manhunt");
+        return manhunt;
+    }
+
+    public AbstractManhunt getManhunt(CommandSender sender) {
+        AbstractManhunt manhunt = null;
+        if (sender instanceof Player player) {
+            for (AbstractManhunt tempHunt : manhunts.values()) {
+                if (tempHunt.getPlayers().contains(player)) {
+                    manhunt = tempHunt;
+                    break;
+                }
+            }
+        }
+        if (manhunt == null)
             sender.sendMessage(ChatColor.RED + "You are not in a manhunt");
         return manhunt;
     }
+
+
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (args.length > 0) {
 
+            // Compass command - usable by anyone currently in a manhunt
+            // Only hunters and players with admin perms may obtain compasses
             if (args[0].equalsIgnoreCase("compass")) {
 
                 if (!(sender instanceof Player)) {
@@ -60,6 +79,8 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     if (args.length > 1) {
 
                         Player target = plugin.getServer().getPlayerExact(args[1]);
+                        // If you have admin perms you can get compasses for hunters.
+                        // If not, you can only get them for runners.
                         if (target == null || (!sender.hasPermission(ADMIN_PERM) && !manhunt.isRunner(target.getUniqueId()))) {
                             sender.sendMessage(ChatColor.RED + "You can only get tracking compasses for runners");
                             return false;
@@ -84,6 +105,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Reload command - usable by anyone with admin perms
             else if (args[0].equalsIgnoreCase("reload")) {
 
                 if (!sender.hasPermission(RELOAD_PERM)) {
@@ -97,6 +119,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Create command - usable by anyone with admin perms
             else if (args[0].equalsIgnoreCase("create")) {
 
                 if (!(sender instanceof Player)) {
@@ -153,6 +176,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Add command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("add")) {
 
                 if (!(sender instanceof Player)) {
@@ -207,6 +231,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Remove command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("remove")) {
 
                 if (!(sender instanceof Player)) {
@@ -247,6 +272,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Start command - only the owner may start manhunts
             else if (args[0].equalsIgnoreCase("start")) {
 
                 if (!(sender instanceof Player)) {
@@ -255,7 +281,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                 }
                 Player player = (Player) sender;
 
-                AbstractManhunt manhunt = getManhunt(sender);
+                AbstractManhunt manhunt = getManhuntAsOwner(sender);
                 if (manhunt != null) {
 
                     if (!sender.hasPermission(ADMIN_PERM)) {
@@ -285,6 +311,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Revive command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("revive")) {
 
                 if (!(sender instanceof Player)) {
@@ -297,7 +324,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                 if (manhunt != null) {
 
                     if (!sender.hasPermission(ADMIN_PERM)) {
-                        sender.sendMessage(ChatColor.RED + "You do not have permission to remove players");
+                        sender.sendMessage(ChatColor.RED + "You do not have permission to revive players");
                         return false;
                     }
 
@@ -326,6 +353,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Pause command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("pause")) {
 
                 if (!(sender instanceof Player)) {
@@ -355,6 +383,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Stop command - only the owner may stop manhunts
             else if (args[0].equalsIgnoreCase("stop")) {
 
                 if (!(sender instanceof Player)) {
@@ -363,7 +392,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                 }
                 Player player = (Player) sender;
 
-                AbstractManhunt manhunt = getManhunt(sender);
+                AbstractManhunt manhunt = getManhuntAsOwner(sender);
                 if (manhunt != null) {
 
                     if (!sender.hasPermission(ADMIN_PERM)) {
@@ -385,6 +414,8 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Reset command - usable by anyone with admin perms
+            // COMPLETELY USELESS
             else if (args[0].equalsIgnoreCase("reset")) {
 
                 if (!sender.hasPermission(ADMIN_PERM)) {
