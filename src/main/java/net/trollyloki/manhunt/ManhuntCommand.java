@@ -76,6 +76,33 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
+     * This method takes a player and returns any manhunt they are participating in OR owner of.
+     * However, this does not send any messages to the sender.
+     * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
+     * However, that should not matter with this method.
+     * @param sender Sender of command
+     * @return Manhunt that they are participating in OR owner of, null if none
+     */
+    public AbstractManhunt getManhuntSilently(CommandSender sender) {
+        AbstractManhunt manhunt = null;
+        // Check if player is a participant in a manhunt
+        // Owning a manhunt does not mean you are participating in the manhunt (yet)
+        if (sender instanceof Player player) {
+            for (AbstractManhunt tempHunt : manhunts.values()) {
+                if (tempHunt.getPlayers().contains(player)) {
+                    manhunt = tempHunt;
+                    break;
+                }
+            }
+            // If they were not found, maybe they own a manhunt but just haven't added themselves yet
+            if (manhunt == null)
+                manhunt = manhunts.get(player.getUniqueId());
+        }
+
+        return manhunt;
+    }
+
+    /**
      * This method takes a player and returns any manhunt they are participating in.
      * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
      * @param sender Sender of command
@@ -500,11 +527,11 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             if (args[0].equalsIgnoreCase("compass")) {
 
-                if (sender instanceof Player
-                        && (manhunt = manhunts.get(((Player) sender).getUniqueId())) != null
-                        && manhunt.isHunter(((Player) sender).getUniqueId())) {
+                if (sender instanceof Player player) {
 
-                    if (args.length == 2) {
+                    manhunt = getManhuntSilently(player);
+
+                    if (args.length == 2 && manhunt != null) {
                         return Utils.filter(Utils.getNames(manhunt.getRunners()), args[1]);
                     }
 
