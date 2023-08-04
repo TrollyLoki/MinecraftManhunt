@@ -12,6 +12,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -27,27 +28,117 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
         this.plugin = plugin;
     }
 
-    public AbstractManhunt getManhunt(CommandSender sender) {
+    /**
+     * This method takes a player and returns the manhunt they are currently owner of.
+     * @param sender Sender of command
+     * @return Manhunt that they own, null if none
+     */
+    public AbstractManhunt getManhuntAsOwner(CommandSender sender) {
         AbstractManhunt manhunt = null;
         if (sender instanceof Player)
             manhunt = manhunts.get(((Player) sender).getUniqueId());
+        if (manhunt == null) {
+            // Check if user is a participant in a manhunt
+            if (getManhuntAsMember(sender) != null)
+                sender.sendMessage(ChatColor.RED + "You are not the owner of this manhunt");
+            else
+                sender.sendMessage(ChatColor.RED + "You do not own a manhunt");
+        }
+        return manhunt;
+    }
+
+    /**
+     * This method takes a player and returns any manhunt they are participating in OR owner of.
+     * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
+     * However, that should not matter with this method.
+     * @param sender Sender of command
+     * @return Manhunt that they are participating in OR owner of, null if none
+     */
+    public AbstractManhunt getManhunt(CommandSender sender) {
+        AbstractManhunt manhunt = null;
+        // Check if player is a participant in a manhunt
+        // Owning a manhunt does not mean you are participating in the manhunt (yet)
+        if (sender instanceof Player player) {
+            for (AbstractManhunt tempHunt : manhunts.values()) {
+                if (tempHunt.getPlayers().contains(player)) {
+                    manhunt = tempHunt;
+                    break;
+                }
+            }
+            // If they were not found, maybe they own a manhunt but just haven't added themselves yet
+            if (manhunt == null)
+                manhunt = manhunts.get(player.getUniqueId());
+        }
+
         if (manhunt == null)
             sender.sendMessage(ChatColor.RED + "You are not in a manhunt");
         return manhunt;
     }
 
+    /**
+     * This method takes a player and returns any manhunt they are participating in OR owner of.
+     * However, this does not send any messages to the sender.
+     * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
+     * However, that should not matter with this method.
+     * @param sender Sender of command
+     * @return Manhunt that they are participating in OR owner of, null if none
+     */
+    public AbstractManhunt getManhuntSilently(CommandSender sender) {
+        AbstractManhunt manhunt = null;
+        // Check if player is a participant in a manhunt
+        // Owning a manhunt does not mean you are participating in the manhunt (yet)
+        if (sender instanceof Player player) {
+            for (AbstractManhunt tempHunt : manhunts.values()) {
+                if (tempHunt.getPlayers().contains(player)) {
+                    manhunt = tempHunt;
+                    break;
+                }
+            }
+            // If they were not found, maybe they own a manhunt but just haven't added themselves yet
+            if (manhunt == null)
+                manhunt = manhunts.get(player.getUniqueId());
+        }
+
+        return manhunt;
+    }
+
+    /**
+     * This method takes a player and returns any manhunt they are participating in.
+     * Being the owner does not always mean they are participating. The owner needs to add themselves to the manhunt.
+     * @param sender Sender of command
+     * @return Manhunt associated with the sender, null if none
+     */
+    public AbstractManhunt getManhuntAsMember(CommandSender sender) {
+        AbstractManhunt manhunt = null;
+        // Check if player is a participant in a manhunt
+        // Owning a manhunt does not mean you are participating in the manhunt (yet)
+        if (sender instanceof Player player) {
+            for (AbstractManhunt tempHunt : manhunts.values()) {
+                if (tempHunt.getPlayers().contains(player)) {
+                    manhunt = tempHunt;
+                    break;
+                }
+            }
+        }
+
+        return manhunt;
+    }
+
+
+
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
 
         if (args.length > 0) {
 
+            // Compass command - usable by anyone currently in a manhunt
+            // Only hunters and players with admin perms may obtain compasses
             if (args[0].equalsIgnoreCase("compass")) {
 
-                if (!(sender instanceof Player)) {
+                if (!(sender instanceof Player player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can get tracking compasses");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -60,6 +151,8 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                     if (args.length > 1) {
 
                         Player target = plugin.getServer().getPlayerExact(args[1]);
+                        // If you have admin perms you can get compasses for hunters.
+                        // If not, you can only get them for runners.
                         if (target == null || (!sender.hasPermission(ADMIN_PERM) && !manhunt.isRunner(target.getUniqueId()))) {
                             sender.sendMessage(ChatColor.RED + "You can only get tracking compasses for runners");
                             return false;
@@ -84,6 +177,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Reload command - usable by anyone with admin perms
             else if (args[0].equalsIgnoreCase("reload")) {
 
                 if (!sender.hasPermission(RELOAD_PERM)) {
@@ -97,13 +191,13 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Create command - usable by anyone with admin perms
             else if (args[0].equalsIgnoreCase("create")) {
 
-                if (!(sender instanceof Player)) {
+                if (!(sender instanceof Player player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can create manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 if (!sender.hasPermission(ADMIN_PERM)) {
                     sender.sendMessage(ChatColor.RED + "You do not have permission to create a manhunt");
@@ -153,13 +247,13 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Add command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("add")) {
 
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can add players");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -207,13 +301,13 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Remove command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("remove")) {
 
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can remove players");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -247,15 +341,15 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Start command - only the owner may start manhunts
             else if (args[0].equalsIgnoreCase("start")) {
 
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can start manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
-                AbstractManhunt manhunt = getManhunt(sender);
+                AbstractManhunt manhunt = getManhuntAsOwner(sender);
                 if (manhunt != null) {
 
                     if (!sender.hasPermission(ADMIN_PERM)) {
@@ -285,19 +379,19 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Revive command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("revive")) {
 
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can revive players");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
 
                     if (!sender.hasPermission(ADMIN_PERM)) {
-                        sender.sendMessage(ChatColor.RED + "You do not have permission to remove players");
+                        sender.sendMessage(ChatColor.RED + "You do not have permission to revive players");
                         return false;
                     }
 
@@ -326,13 +420,13 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Pause command - usable by anyone with admin perms currently in a manhunt, owner or not
             else if (args[0].equalsIgnoreCase("pause")) {
 
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can pause manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
@@ -355,15 +449,15 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Stop command - only the owner may stop manhunts
             else if (args[0].equalsIgnoreCase("stop")) {
 
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can stop manhunts");
                     return false;
                 }
-                Player player = (Player) sender;
 
-                AbstractManhunt manhunt = getManhunt(sender);
+                AbstractManhunt manhunt = getManhuntAsOwner(sender);
                 if (manhunt != null) {
 
                     if (!sender.hasPermission(ADMIN_PERM)) {
@@ -385,6 +479,8 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             }
 
+            // Reset command - usable by anyone with admin perms
+            // COMPLETELY USELESS
             else if (args[0].equalsIgnoreCase("reset")) {
 
                 if (!sender.hasPermission(ADMIN_PERM)) {
@@ -424,18 +520,18 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
 
         if (args.length > 1) {
             AbstractManhunt manhunt;
 
             if (args[0].equalsIgnoreCase("compass")) {
 
-                if (sender instanceof Player
-                        && (manhunt = manhunts.get(((Player) sender).getUniqueId())) != null
-                        && manhunt.isHunter(((Player) sender).getUniqueId())) {
+                if (sender instanceof Player player) {
 
-                    if (args.length == 2) {
+                    manhunt = getManhuntSilently(player);
+
+                    if (args.length == 2 && manhunt != null) {
                         return Utils.filter(Utils.getNames(manhunt.getRunners()), args[1]);
                     }
 
