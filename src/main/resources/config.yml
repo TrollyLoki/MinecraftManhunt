@@ -1,7 +1,9 @@
 tracking-compass:
-  name: '&bTracking %s'
+  name-prefix: '&bTracking '
   lore: '&7Right click to update'
-  update: 'Target location updated'
+  structure-search-radius: 64 # chunks
+  fortress-name: 'Nether Fortress'
+  bastion-name: 'Bastion Remnant'
 
 scoreboard:
   runner-color: BLUE

@@ -92,36 +92,6 @@ public class Utils {
 
     }
 
-    public static final UUIDPersistentDataType UUID_PERSISTENT_DATA_TYPE = new UUIDPersistentDataType();
-
-    private static class UUIDPersistentDataType implements PersistentDataType<byte[], UUID> {
-
-        @Override
-        public Class<byte[]> getPrimitiveType() {
-            return byte[].class;
-        }
-
-        @Override
-        public Class<UUID> getComplexType() {
-            return UUID.class;
-        }
-
-        @Override
-        public byte[] toPrimitive(UUID complex, PersistentDataAdapterContext context) {
-            ByteBuffer buffer = ByteBuffer.allocate(16);
-            buffer.putLong(complex.getMostSignificantBits());
-            buffer.putLong(complex.getLeastSignificantBits());
-            return buffer.array();
-        }
-
-        @Override
-        public UUID fromPrimitive(byte[] primitive, PersistentDataAdapterContext context) {
-            ByteBuffer buffer = ByteBuffer.wrap(primitive);
-            return new UUID(buffer.getLong(), buffer.getLong());
-        }
-
-    }
-
     /**
      * Deletes the given directory and all files in it
      *

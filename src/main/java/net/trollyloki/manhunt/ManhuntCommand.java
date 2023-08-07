@@ -1,5 +1,10 @@
 package net.trollyloki.manhunt;
 
+import net.trollyloki.manhunt.compass.BastionCompassTarget;
+import net.trollyloki.manhunt.compass.CompassListener;
+import net.trollyloki.manhunt.compass.CompassTarget;
+import net.trollyloki.manhunt.compass.FortressCompassTarget;
+import net.trollyloki.manhunt.compass.PlayerCompassTarget;
 import net.trollyloki.manhunt.types.AdvancementManhunt;
 import net.trollyloki.manhunt.types.ClassicManhunt;
 import org.bukkit.ChatColor;
@@ -143,14 +148,19 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                 AbstractManhunt manhunt = getManhunt(sender);
                 if (manhunt != null) {
 
-                    if (!sender.hasPermission(ADMIN_PERM) && !manhunt.isHunter(player.getUniqueId())) {
-                        sender.sendMessage(ChatColor.RED + "Only hunters can get tracking compasses");
-                        return false;
-                    }
+                    if (args.length > 1 && args[1].equalsIgnoreCase("player")) {
 
-                    if (args.length > 1) {
+                        if (!sender.hasPermission(ADMIN_PERM) && !manhunt.isHunter(player.getUniqueId())) {
+                            sender.sendMessage(ChatColor.RED + "Only hunters can get player tracking compasses");
+                            return false;
+                        }
 
-                        Player target = plugin.getServer().getPlayerExact(args[1]);
+                        if (args.length < 3) {
+                            sender.sendMessage(ChatColor.RED + "Usage: /" + label + " compass player <name>");
+                            return false;
+                        }
+
+                        Player target = plugin.getServer().getPlayerExact(args[2]);
                         // If you have admin perms you can get compasses for hunters.
                         // If not, you can only get them for runners.
                         if (target == null || (!sender.hasPermission(ADMIN_PERM) && !manhunt.isRunner(target.getUniqueId()))) {
@@ -158,20 +168,51 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
                             return false;
                         }
 
-                        ItemStack compass = plugin.getListener().getTrackingCompass(target.getUniqueId());
-                        if (compass == null) {
-                            sender.sendMessage(ChatColor.RED + "Failed to get a tracking compass for " + target.getName());
-                            return false;
-                        }
+                        ItemStack compass = CompassListener.createCompassItem(new PlayerCompassTarget(target));
+                        CompassListener.updateCompass(compass, player.getLocation());
 
                         if (!player.getInventory().addItem(compass).isEmpty())
                             player.getWorld().dropItem(player.getLocation(), compass);
                         sender.sendMessage(ChatColor.GREEN + "You have been given a tracking compass for " + target.getName());
                         return true;
 
+                    } else if (args.length > 1 && args[1].equalsIgnoreCase("structure")) {
+
+                        if (!sender.hasPermission(ADMIN_PERM) && !manhunt.isRunner(player.getUniqueId())) {
+                            sender.sendMessage(ChatColor.RED + "Only runners can get structure tracking compasses");
+                            return false;
+                        }
+
+                        if (args.length > 2) {
+
+                            CompassTarget target = null;
+                            if (args[2].equalsIgnoreCase("fortress"))
+                                target = new FortressCompassTarget();
+                            else if (args[2].equalsIgnoreCase("bastion"))
+                                target = new BastionCompassTarget();
+
+                            if (target != null) {
+
+                                ItemStack compass = CompassListener.createCompassItem(target);
+                                CompassListener.updateCompass(compass, player.getLocation());
+
+                                if (!player.getInventory().addItem(compass).isEmpty())
+                                    player.getWorld().dropItem(player.getLocation(), compass);
+                                sender.sendMessage(ChatColor.GREEN + "You have been given a tracking compass for a " + target.getName());
+                                return true;
+
+                            }
+
+                        }
+
+                        sender.sendMessage(ChatColor.RED + "Usage: /" + label + " compass structure <fortress|bastion>");
+                        return false;
+
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Usage: /" + label + " compass <player|structure>");
+                        return false;
                     }
 
-                    sender.sendMessage(ChatColor.RED + "Usage: /" + label + " compass <player>");
                 }
                 return false;
 
@@ -527,13 +568,29 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
             if (args[0].equalsIgnoreCase("compass")) {
 
-                if (sender instanceof Player player) {
+                if (args.length == 2) {
+                    LinkedList<String> types = new LinkedList<>();
+                    types.add("player");
+                    types.add("structure");
+                    return Utils.filter(types, args[1]);
+                } else if (args.length == 3 && args[1].equalsIgnoreCase("player")) {
 
-                    manhunt = getManhuntSilently(player);
+                    if (sender instanceof Player player) {
 
-                    if (args.length == 2 && manhunt != null) {
-                        return Utils.filter(Utils.getNames(manhunt.getRunners()), args[1]);
+                        manhunt = getManhuntSilently(player);
+
+                        if (manhunt != null) {
+                            return Utils.filter(Utils.getNames(manhunt.getRunners()), args[2]);
+                        }
+
                     }
+
+                } else if (args.length == 3 && args[1].equalsIgnoreCase("structure")) {
+
+                    LinkedList<String> types = new LinkedList<>();
+                    types.add("fortress");
+                    types.add("bastion");
+                    return Utils.filter(types, args[2]);
 
                 }
 

@@ -1,16 +1,20 @@
 package net.trollyloki.manhunt;
 
+import net.trollyloki.manhunt.compass.CompassListener;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 public class ManhuntPlugin extends JavaPlugin {
+
+    private static ManhuntPlugin instance;
 
     private File resetFile;
 
@@ -20,8 +24,11 @@ public class ManhuntPlugin extends JavaPlugin {
     private ManhuntListener listener;
     private ReviveGUI reviveGUI;
 
+    private CompassListener compassListener;
+
     @Override
     public void onEnable() {
+        instance = this;
 
         saveDefaultConfig();
         resetFile = new File(getDataFolder(), "reset");
@@ -47,17 +54,26 @@ public class ManhuntPlugin extends JavaPlugin {
         this.reviveGUI = new ReviveGUI(this);
         getServer().getPluginManager().registerEvents(reviveGUI, this);
 
+        this.compassListener = new CompassListener(this);
+        getServer().getPluginManager().registerEvents(compassListener, this);
+
         getCommand("manhunt").setExecutor(new ManhuntCommand(this));
 
     }
 
     @Override
     public void onDisable() {
+        instance = null;
+
         try {
             data.save(dataFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static ManhuntPlugin getInstance() {
+        return instance;
     }
 
     /**

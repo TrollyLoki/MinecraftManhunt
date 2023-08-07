@@ -39,89 +39,6 @@ public class ManhuntListener implements Listener {
         this.manhunts = new HashMap<>();
     }
 
-    /**
-     * Gets a tracking compass tracking the given target
-     *
-     * @param target Target
-     * @return Tracking compass
-     */
-    public ItemStack getTrackingCompass(UUID target) {
-        ItemStack compass = new ItemStack(Material.COMPASS);
-        if (!setTarget(compass, target))
-            return null;
-        if (!updateTarget(compass))
-            return null;
-        return compass;
-    }
-
-    /**
-     * Sets the target of the given tracking compass
-     *
-     * @param compass Tracking compass
-     * @param target Target
-     * @return {@code true} if the target was set
-     */
-    private boolean setTarget(ItemStack compass, UUID target) {
-        if (compass.getType() == Material.COMPASS) {
-            CompassMeta meta = (CompassMeta) compass.getItemMeta();
-            meta.getPersistentDataContainer().set(targetKey, Utils.UUID_PERSISTENT_DATA_TYPE, target);
-            compass.setItemMeta(meta);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the given tracking compass has a target
-     *
-     * @param compass Tracking compass
-     * @return {@code true} if the tracking compass has a target
-     */
-    private boolean hasTarget(ItemStack compass) {
-        if (compass.getType() == Material.COMPASS)
-            return compass.getItemMeta().getPersistentDataContainer().has(targetKey,
-                    Utils.UUID_PERSISTENT_DATA_TYPE);
-        return false;
-    }
-
-    /**
-     * Gets the target of the given tracking compass
-     *
-     * @param compass Tracking compass
-     * @return Target
-     */
-    private UUID getTarget(ItemStack compass) {
-        if (compass.getType() == Material.COMPASS)
-            return compass.getItemMeta().getPersistentDataContainer().get(targetKey,
-                    Utils.UUID_PERSISTENT_DATA_TYPE);
-        return null;
-    }
-
-    /**
-     * Updates the target location of the given tracking compass
-     *
-     * @param compass Tracking compass
-     * @return {@code true} if the target location was updated
-     */
-    private boolean updateTarget(ItemStack compass) {
-        if (compass.getType() == Material.COMPASS) {
-            UUID target = getTarget(compass);
-            if (target != null) {
-                Entity entity = plugin.getServer().getEntity(target);
-                if (entity != null) {
-                    CompassMeta meta = (CompassMeta) compass.getItemMeta();
-                    meta.setDisplayName(String.format(plugin.getConfigString("tracking-compass.name"), entity.getName()));
-                    meta.setLore(Collections.singletonList(plugin.getConfigString("tracking-compass.lore")));
-                    meta.setLodestoneTracked(false);
-                    meta.setLodestone(entity.getLocation());
-                    compass.setItemMeta(meta);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private static final String[] WORLD_NAMES = {
             "%s", "%s_nether", "%s_the_end"
     };
@@ -241,14 +158,6 @@ public class ManhuntListener implements Listener {
     public ManhuntEventHandler getEventHandler(World world) {
         AbstractManhunt manhunt = getManhunt(world);
         return manhunt != null ? manhunt : DUMMY_EVENT_HANDLER;
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getItem() != null && (event.getAction() == Action.RIGHT_CLICK_AIR
-                || event.getAction() == Action.RIGHT_CLICK_BLOCK))
-            if (updateTarget(event.getItem()))
-                event.getPlayer().sendActionBar(Component.text(plugin.getConfigString("tracking-compass.update")));
     }
 
     @EventHandler

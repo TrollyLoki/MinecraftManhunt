@@ -6,6 +6,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.trollyloki.manhunt.DropHolder;
 import net.trollyloki.manhunt.ManhuntPlugin;
 import net.trollyloki.manhunt.Utils;
+import net.trollyloki.manhunt.compass.CompassListener;
+import net.trollyloki.manhunt.compass.PlayerCompassTarget;
 import net.trollyloki.manhunt.types.ManhuntEventHandler;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -195,12 +197,11 @@ public class AbstractManhunt extends BukkitRunnable implements ManhuntEventHandl
         if (isHunter(player.getUniqueId())) {
             int count = 0;
             for (UUID runner : runners) {
-                ItemStack compass = plugin.getListener().getTrackingCompass(runner);
-                if (compass != null) {
-                    if (!player.getInventory().addItem(compass).isEmpty())
-                        player.getWorld().dropItem(player.getLocation(), compass);
-                    count++;
-                }
+                ItemStack compass = CompassListener.createCompassItem(new PlayerCompassTarget(runner));
+                CompassListener.updateCompass(compass, player.getLocation());
+                if (!player.getInventory().addItem(compass).isEmpty())
+                    player.getWorld().dropItem(player.getLocation(), compass);
+                count++;
             }
             return count;
         }
