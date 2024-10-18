@@ -478,7 +478,7 @@ public class AbstractManhunt extends BukkitRunnable implements ManhuntEventHandl
 
                 if (team != null) {
                     team.addEntry(player.getName());
-                    finalHealth.getScore(player.getName()).setScore(20);
+                    //finalHealth.getScore(player.getName()).setScore(20);
                     finalRevives.getScore(player.getName()).setScore(reviveCount);
                     revives.put(player.getUniqueId(), reviveCount);
 
@@ -500,7 +500,9 @@ public class AbstractManhunt extends BukkitRunnable implements ManhuntEventHandl
                             pearlsRemainder--;
                             pearlCount++;
                         }
-                        player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL, pearlCount));
+                        if (pearlCount > 0) {
+                            player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL, pearlCount));
+                        }
                     }
                 }
 
@@ -518,6 +520,10 @@ public class AbstractManhunt extends BukkitRunnable implements ManhuntEventHandl
             running = true;
             output.accept("Complete!");
 
+        }).exceptionally(e -> {
+            output.accept("ERROR: " + e);
+            e.printStackTrace();
+            return null;
         });
         return true;
     }
