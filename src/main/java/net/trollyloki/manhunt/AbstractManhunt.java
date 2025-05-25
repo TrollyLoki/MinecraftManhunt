@@ -420,8 +420,8 @@ public class AbstractManhunt extends BukkitRunnable implements ManhuntEventHandl
         health.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
         Objective revivesObj = scoreboard.getObjective("revives");
-        if (revivesObj == null)
-            revivesObj = scoreboard.registerNewObjective("revives", "dummy", "Revives Remaining");
+        if (revivesObj != null) revivesObj.unregister();
+        revivesObj = scoreboard.registerNewObjective("revives", "dummy", "Revives Remaining");
         revivesObj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
         int maxDistance = plugin.getConfig().getInt("game.max-distance");
